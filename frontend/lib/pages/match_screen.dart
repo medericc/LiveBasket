@@ -152,6 +152,11 @@ void _applyAction(int playerId, String action, {bool undo = false}) {
         title: Text('Match en direct'),
         actions: [
           IconButton(
+             icon: Icon(Icons.history), // Icône de flèche pour l'historique
+    onPressed: _showActionHistory, // Ouvrir la modale d'historique
+    tooltip: 'Historique des actions',
+          ),
+          IconButton(
             icon: Icon(Icons.save),
             onPressed: _saveStats, // Sauvegarder les stats en cours
             tooltip: 'Sauvegarder les stats',
@@ -226,10 +231,7 @@ void _applyAction(int playerId, String action, {bool undo = false}) {
     ],
             ),
           ),
-          ElevatedButton(
-            child: Text('Afficher l\'historique des actions'),
-            onPressed: _showActionHistory, // Ouvrir la modale d'historique
-          ),
+         
         ],
       ),
     );
