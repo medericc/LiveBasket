@@ -16,3 +16,7 @@ type MatchStat struct {
     FGMade          int `json:"fg_made"`        // Paniers réussis
     FGAttempted     int `json:"fg_attempted"`   // Paniers tentés
 }
+type Match struct {
+    ID      int    `json:"id"`
+    Status  string `json:"status"`  // "ongoing" ou "completed"
+}

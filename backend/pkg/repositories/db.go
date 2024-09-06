@@ -4,7 +4,7 @@ import (
     "gorm.io/driver/mysql"
     "gorm.io/gorm"
     "log"
-    "backend/internal/config"
+   "backend/pkg/models"
 )
 
 var DB *gorm.DB
@@ -19,5 +19,5 @@ func InitDB() {
 }
 
 func AutoMigrate() {
-    DB.AutoMigrate(&Player{}, &Team{}, &MatchStat{})
+    DB.AutoMigrate(&Player{}, &Team{}, &MatchStat{}, &Match{})
 }

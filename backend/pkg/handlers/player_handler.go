@@ -5,6 +5,7 @@ import (
     "strconv"
     "github.com/gin-gonic/gin"
     "backend/pkg/services"
+    "backend/pg/models"
 )
 
 func GetPlayers(c *gin.Context) {
