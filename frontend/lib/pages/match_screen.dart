@@ -1,83 +1,102 @@
 import 'package:flutter/material.dart';
 
 class MatchScreen extends StatefulWidget {
-  final int matchId; // ID du match en cours (pour charger les stats)
-  MatchScreen({required this.matchId});
+  final String teamName;
+  final List<String> players;
+
+  MatchScreen({required this.teamName, required this.players});
 
   @override
   _MatchScreenState createState() => _MatchScreenState();
 }
 
 class _MatchScreenState extends State<MatchScreen> {
-  // Structure pour les statistiques des joueurs
-  Map<int, Map<String, int>> playerStats = {
-    1: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
-    2: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
-    3: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
-    4: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
-  };
-
-  // Liste pour stocker l'historique des actions
+  late Map<int, Map<String, int>> playerStats;
   List<Map<String, dynamic>> actionHistory = [];
 
-void _applyAction(int playerId, String action, {bool undo = false}) {
-  int multiplier = undo ? -1 : 1;
+  @override
+  void initState() {
+    super.initState();
+    // Initialize player stats based on the dynamic list of players
+    playerStats = {
+      for (int i = 0; i < widget.players.length; i++)
+        i + 1: {
+          'points': 0,
+          'rebounds': 0,
+          'assists': 0,
+          'steals': 0,
+          'blocks': 0,
+          'oneMade': 0,
+          'oneMiss': 0,
+          'twoMade': 0,
+          'twoMiss': 0,
+          'threeMade': 0,
+          'threeMiss': 0,
+          'turnover': 0
+        }
+    };
+  }
 
-  setState(() {
-    switch (action) {
-      case 'rebound':
-        playerStats[playerId]!['rebounds'] = playerStats[playerId]!['rebounds']! + (1 * multiplier);
-        break;
-      case 'assist':
-        playerStats[playerId]!['assists'] = playerStats[playerId]!['assists']! + (1 * multiplier);
-        break;
-      case 'steal':
-        playerStats[playerId]!['steals'] = playerStats[playerId]!['steals']! + (1 * multiplier);
-        break;
-      case 'block':
-        playerStats[playerId]!['blocks'] = playerStats[playerId]!['blocks']! + (1 * multiplier);
-        break;
-      case 'oneMade':
-        playerStats[playerId]!['oneMade'] = playerStats[playerId]!['oneMade']! + (1 * multiplier);
-        playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (1 * multiplier);
-        break;
-      case 'twoMade':
-        playerStats[playerId]!['twoMade'] = playerStats[playerId]!['twoMade']! + (1 * multiplier);
-        playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (2 * multiplier);
-        break;
-      case 'threeMade':
-        playerStats[playerId]!['threeMade'] = playerStats[playerId]!['threeMade']! + (1 * multiplier);
-        playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (3 * multiplier);
-        break;
-      case 'oneMiss':
-        playerStats[playerId]!['oneMiss'] = playerStats[playerId]!['oneMiss']! + (1 * multiplier);
-        break;
-      case 'twoMiss':
-        playerStats[playerId]!['twoMiss'] = playerStats[playerId]!['twoMiss']! + (1 * multiplier);
-        break;
-      case 'threeMiss':
-        playerStats[playerId]!['threeMiss'] = playerStats[playerId]!['threeMiss']! + (1 * multiplier);
-        break;
-      case 'turnover':
-        playerStats[playerId]!['turnover'] = playerStats[playerId]!['turnover']! + (1 * multiplier);
-        break;
-      default:
-        break;
-    }
+  void _applyAction(int playerId, String action, {bool undo = false}) {
+    int multiplier = undo ? -1 : 1;
 
-    // Ajouter l'action dans l'historique si ce n'est pas une annulation
-    if (!undo) {
-      actionHistory.add({
-        'playerId': playerId,
-        'action': action,
-        'timestamp': DateTime.now(),
-      });
-    }
-  });
-}
+    setState(() {
+      switch (action) {
+        case 'rebound':
+          playerStats[playerId]!['rebounds'] = playerStats[playerId]!['rebounds']! + (1 * multiplier);
+          break;
+        case 'assist':
+          playerStats[playerId]!['assists'] = playerStats[playerId]!['assists']! + (1 * multiplier);
+          break;
+        case 'steal':
+          playerStats[playerId]!['steals'] = playerStats[playerId]!['steals']! + (1 * multiplier);
+          break;
+        case 'block':
+          playerStats[playerId]!['blocks'] = playerStats[playerId]!['blocks']! + (1 * multiplier);
+          break;
+        case 'oneMade':
+          playerStats[playerId]!['oneMade'] = playerStats[playerId]!['oneMade']! + (1 * multiplier);
+          playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (1 * multiplier);
+          break;
+        case 'twoMade':
+          playerStats[playerId]!['twoMade'] = playerStats[playerId]!['twoMade']! + (1 * multiplier);
+          playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (2 * multiplier);
+          break;
+        case 'threeMade':
+          playerStats[playerId]!['threeMade'] = playerStats[playerId]!['threeMade']! + (1 * multiplier);
+          playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (3 * multiplier);
+          break;
+        case 'oneMiss':
+          playerStats[playerId]!['oneMiss'] = playerStats[playerId]!['oneMiss']! + (1 * multiplier);
+          break;
+        case 'twoMiss':
+          playerStats[playerId]!['twoMiss'] = playerStats[playerId]!['twoMiss']! + (1 * multiplier);
+          break;
+        case 'threeMiss':
+          playerStats[playerId]!['threeMiss'] = playerStats[playerId]!['threeMiss']! + (1 * multiplier);
+          break;
+        case 'turnover':
+          playerStats[playerId]!['turnover'] = playerStats[playerId]!['turnover']! + (1 * multiplier);
+          break;
+        default:
+          break;
+      }
 
+      if (!undo) {
+        actionHistory.add({
+          'playerId': playerId,
+          'action': action,
+          'timestamp': DateTime.now(),
+        });
+      }
+    });
+  }
 
-  // Supprimer une action spécifique
+  double _calculatePercentage(int made, int miss) {
+    int totalAttempts = made + miss;
+    return totalAttempts > 0 ? (made / totalAttempts) * 100 : 0.0;
+  }
+
   void _deleteAction(int index) {
     if (index >= 0 && index < actionHistory.length) {
       var action = actionHistory[index];
@@ -85,25 +104,22 @@ void _applyAction(int playerId, String action, {bool undo = false}) {
       String actionType = action['action'];
 
       setState(() {
-        _applyAction(playerId, actionType, undo: true); // Annuler l'action
-        actionHistory.removeAt(index); // Supprimer l'action de l'historique
+        _applyAction(playerId, actionType, undo: true);
+        actionHistory.removeAt(index);
       });
     }
   }
 
-  // Sauvegarder les stats temporaires
   void _saveStats() {
     print(playerStats);
     print("Statistiques sauvegardées !");
   }
 
-  // Terminer le match et sauvegarder toutes les stats
   void _stopMatch() {
     print("Match terminé et stats sauvegardées !");
-    Navigator.pop(context); // Retour à l'écran précédent
+    Navigator.pop(context);
   }
 
-  // Ouvrir la modale avec l'historique des actions
   void _showActionHistory() {
     showDialog(
       context: context,
@@ -123,9 +139,9 @@ void _applyAction(int playerId, String action, {bool undo = false}) {
                   trailing: IconButton(
                     icon: Icon(Icons.delete, color: Colors.red),
                     onPressed: () {
-                      _deleteAction(index); // Supprimer l'action sélectionnée
-                      Navigator.of(context).pop(); // Fermer la modale après suppression
-                      _showActionHistory(); // Réouvrir la modale mise à jour
+                      _deleteAction(index);
+                      Navigator.of(context).pop();
+                      _showActionHistory();
                     },
                   ),
                 );
@@ -152,57 +168,63 @@ void _applyAction(int playerId, String action, {bool undo = false}) {
         title: Text('Match en direct'),
         actions: [
           IconButton(
-             icon: Icon(Icons.history), // Icône de flèche pour l'historique
-    onPressed: _showActionHistory, // Ouvrir la modale d'historique
-    tooltip: 'Historique des actions',
+            icon: Icon(Icons.history),
+            onPressed: _showActionHistory,
+            tooltip: 'Historique des actions',
           ),
           IconButton(
             icon: Icon(Icons.save),
-            onPressed: _saveStats, // Sauvegarder les stats en cours
+            onPressed: _saveStats,
             tooltip: 'Sauvegarder les stats',
           ),
           IconButton(
             icon: Icon(Icons.stop),
-            onPressed: _stopMatch, // Terminer le match
+            onPressed: _stopMatch,
             tooltip: 'Arrêter le match',
           ),
         ],
       ),
       body: Column(
         children: [
-          // Affichage des statistiques des joueurs
+          Text('Équipe: ${widget.teamName}'),
           Expanded(
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                 crossAxisCount: 2,
               ),
-              itemCount: playerStats.length,
+              itemCount: widget.players.length,
               itemBuilder: (context, index) {
-                int playerId = playerStats.keys.elementAt(index);
+                int playerId = index + 1;
+                var stats = playerStats[playerId]!;
+
+                double freeThrowPct = _calculatePercentage(stats['oneMade']!, stats['oneMiss']!);
+                double twoPointPct = _calculatePercentage(stats['twoMade']!, stats['twoMiss']!);
+                double threePointPct = _calculatePercentage(stats['threeMade']!, stats['threeMiss']!);
+                double fieldGoalPct = _calculatePercentage(
+                  stats['twoMade']! + stats['threeMade']!,
+                  stats['twoMiss']! + stats['threeMiss']!,
+                );
+
                 return DragTarget<String>(
                   onAccept: (data) {
                     _applyAction(playerId, data);
                   },
                   builder: (context, candidateData, rejectedData) {
                     return Card(
-                      elevation: 4,
+                      color: Colors.grey[200],
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Text('Joueur $playerId'),
-                          SizedBox(height: 10),
-                          Text('Points: ${playerStats[playerId]!['points']}'),
-                          Text('Rebonds: ${playerStats[playerId]!['rebounds']}'),
-                          Text('Assists: ${playerStats[playerId]!['assists']}'),
-                          Text('Steals: ${playerStats[playerId]!['steals']}'),
-                          Text('Blocks: ${playerStats[playerId]!['blocks']}'),
-                          Text('1pt réussis: ${playerStats[playerId]!['oneMade']}'),
-                          Text('1pt ratés: ${playerStats[playerId]!['oneMiss']}'),
-                          Text('2pts réussis: ${playerStats[playerId]!['twoMade']}'),
-                          Text('2pts ratés: ${playerStats[playerId]!['twoMiss']}'),
-                          Text('3pts réussis: ${playerStats[playerId]!['threeMade']}'),
-                          Text('3pts ratés: ${playerStats[playerId]!['threeMiss']}'),
-                          Text('Turnovers: ${playerStats[playerId]!['turnover']}'),
+                          Text('Joueur ${playerId + 1}'),
+                          Text('Points: ${stats['points']}'),
+                          Text('Rebonds: ${stats['rebounds']}'),
+                          Text('Assistances: ${stats['assists']}'),
+                          Text('Balles volées: ${stats['steals']}'),
+                          Text('Contres: ${stats['blocks']}'),
+                          Text('LF%: ${freeThrowPct.toStringAsFixed(2)}%'),
+                          Text('2PT%: ${twoPointPct.toStringAsFixed(2)}%'),
+                          Text('3PT%: ${threePointPct.toStringAsFixed(2)}%'),
+                          Text('FG%: ${fieldGoalPct.toStringAsFixed(2)}%'),
                         ],
                       ),
                     );
@@ -211,33 +233,30 @@ void _applyAction(int playerId, String action, {bool undo = false}) {
               },
             ),
           ),
-          // Boutons pour les actions des joueurs
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-             children: [
-      _buildDraggableRow('rebound', Icons.sports_basketball, Colors.green, 'Ajouter 1 rebond'),
-      _buildDraggableRow('assist', Icons.group, Colors.blue, 'Ajouter 1 assist'),
-      _buildDraggableRow('steal', Icons.lock, Colors.orange, 'Ajouter 1 steal'),
-      _buildDraggableRow('block', Icons.block, Colors.red, 'Ajouter 1 block'),
-      _buildDraggableRow('oneMade', Icons.filter_1, Colors.purple, 'Ajouter 1 panier à 1pt'),
-      _buildDraggableRow('oneMiss', Icons.filter_1_outlined, Colors.purple, 'Tir à 1pt raté'),
-      _buildDraggableRow('twoMade', Icons.filter_2, Colors.indigo, 'Ajouter 1 panier à 2pts'),
-      _buildDraggableRow('twoMiss', Icons.filter_2_outlined, Colors.indigo, 'Tir à 2pts raté'),
-      _buildDraggableRow('threeMade', Icons.filter_3, Colors.brown, 'Ajouter 1 panier à 3pts'),
-      _buildDraggableRow('threeMiss', Icons.filter_3_outlined, Colors.brown, 'Tir à 3pts raté'),
-      _buildDraggableRow('turnover', Icons.error, Colors.grey, 'Ajouter 1 turnover'),
-    ],
+              children: [
+                _buildDraggableRow('rebound', Icons.sports_basketball, Colors.green, 'Ajouter 1 rebond'),
+                _buildDraggableRow('assist', Icons.redeem, Colors.blue, 'Ajouter 1 assist'),
+                _buildDraggableRow('steal', Icons.lock, Colors.orange, 'Ajouter 1 steal'),
+                _buildDraggableRow('block', Icons.block, Colors.red, 'Ajouter 1 block'),
+                _buildDraggableRow('oneMade', Icons.filter_1, Colors.purple, 'Ajouter 1 panier à 1pt'),
+                _buildDraggableRow('oneMiss', Icons.filter_1_outlined, Colors.purple, 'Tir à 1pt raté'),
+                _buildDraggableRow('twoMade', Icons.filter_2, Colors.indigo, 'Ajouter 1 panier à 2pts'),
+                _buildDraggableRow('twoMiss', Icons.filter_2_outlined, Colors.indigo, 'Tir à 2pts raté'),
+                _buildDraggableRow('threeMade', Icons.filter_3, Colors.brown, 'Ajouter 1 panier à 3pts'),
+                _buildDraggableRow('threeMiss', Icons.filter_3_outlined, Colors.brown, 'Tir à 3pts raté'),
+                _buildDraggableRow('turnover', Icons.error, Colors.grey, 'Ajouter 1 turnover'),
+              ],
             ),
           ),
-         
         ],
       ),
     );
   }
 
-  // Fonction utilitaire pour créer un Draggable
   Widget _buildDraggableRow(String action, IconData icon, Color color, String tooltip) {
     return Draggable<String>(
       data: action,

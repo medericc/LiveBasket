@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nom_du_projet/pages/live_screens.dart';
 import 'match_screen.dart';  // Importer MatchScreen ici
 
 class HomeScreen extends StatelessWidget {
@@ -15,7 +16,7 @@ class HomeScreen extends StatelessWidget {
             Navigator.push(
               context,
               MaterialPageRoute(
-                builder: (context) => MatchScreen(matchId: 1),
+                builder: (context) => LiveScreen(),
               ),
             );
           },
