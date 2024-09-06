@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class MatchScreen extends StatefulWidget {
-  final int matchId;  // ID du match en cours (pour charger les stats)
+  final int matchId; // ID du match en cours (pour charger les stats)
   MatchScreen({required this.matchId});
 
   @override
@@ -10,26 +10,139 @@ class MatchScreen extends StatefulWidget {
 
 class _MatchScreenState extends State<MatchScreen> {
   // Structure pour les statistiques des joueurs
-// Structure pour les statistiques des joueurs
-Map<int, Map<String, int>> playerStats = {
-  1: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
-  2: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
-  3: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
-  4: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
-};
+  Map<int, Map<String, int>> playerStats = {
+    1: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
+    2: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
+    3: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
+    4: {'points': 0, 'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
+  };
+
+  // Liste pour stocker l'historique des actions
+  List<Map<String, dynamic>> actionHistory = [];
+
+void _applyAction(int playerId, String action, {bool undo = false}) {
+  int multiplier = undo ? -1 : 1;
+
+  setState(() {
+    switch (action) {
+      case 'rebound':
+        playerStats[playerId]!['rebounds'] = playerStats[playerId]!['rebounds']! + (1 * multiplier);
+        break;
+      case 'assist':
+        playerStats[playerId]!['assists'] = playerStats[playerId]!['assists']! + (1 * multiplier);
+        break;
+      case 'steal':
+        playerStats[playerId]!['steals'] = playerStats[playerId]!['steals']! + (1 * multiplier);
+        break;
+      case 'block':
+        playerStats[playerId]!['blocks'] = playerStats[playerId]!['blocks']! + (1 * multiplier);
+        break;
+      case 'oneMade':
+        playerStats[playerId]!['oneMade'] = playerStats[playerId]!['oneMade']! + (1 * multiplier);
+        playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (1 * multiplier);
+        break;
+      case 'twoMade':
+        playerStats[playerId]!['twoMade'] = playerStats[playerId]!['twoMade']! + (1 * multiplier);
+        playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (2 * multiplier);
+        break;
+      case 'threeMade':
+        playerStats[playerId]!['threeMade'] = playerStats[playerId]!['threeMade']! + (1 * multiplier);
+        playerStats[playerId]!['points'] = playerStats[playerId]!['points']! + (3 * multiplier);
+        break;
+      case 'oneMiss':
+        playerStats[playerId]!['oneMiss'] = playerStats[playerId]!['oneMiss']! + (1 * multiplier);
+        break;
+      case 'twoMiss':
+        playerStats[playerId]!['twoMiss'] = playerStats[playerId]!['twoMiss']! + (1 * multiplier);
+        break;
+      case 'threeMiss':
+        playerStats[playerId]!['threeMiss'] = playerStats[playerId]!['threeMiss']! + (1 * multiplier);
+        break;
+      case 'turnover':
+        playerStats[playerId]!['turnover'] = playerStats[playerId]!['turnover']! + (1 * multiplier);
+        break;
+      default:
+        break;
+    }
+
+    // Ajouter l'action dans l'historique si ce n'est pas une annulation
+    if (!undo) {
+      actionHistory.add({
+        'playerId': playerId,
+        'action': action,
+        'timestamp': DateTime.now(),
+      });
+    }
+  });
+}
 
 
+  // Supprimer une action spécifique
+  void _deleteAction(int index) {
+    if (index >= 0 && index < actionHistory.length) {
+      var action = actionHistory[index];
+      int playerId = action['playerId'];
+      String actionType = action['action'];
 
-  // Méthode pour sauvegarder les stats temporairement
+      setState(() {
+        _applyAction(playerId, actionType, undo: true); // Annuler l'action
+        actionHistory.removeAt(index); // Supprimer l'action de l'historique
+      });
+    }
+  }
+
+  // Sauvegarder les stats temporaires
   void _saveStats() {
     print(playerStats);
     print("Statistiques sauvegardées !");
   }
 
-  // Méthode pour terminer le match et sauvegarder toutes les stats
+  // Terminer le match et sauvegarder toutes les stats
   void _stopMatch() {
     print("Match terminé et stats sauvegardées !");
-    Navigator.pop(context);  // Retour à l'écran précédent
+    Navigator.pop(context); // Retour à l'écran précédent
+  }
+
+  // Ouvrir la modale avec l'historique des actions
+  void _showActionHistory() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("Historique des actions"),
+          content: Container(
+            width: double.maxFinite,
+            child: ListView.builder(
+              shrinkWrap: true,
+              itemCount: actionHistory.length,
+              itemBuilder: (context, index) {
+                var action = actionHistory[index];
+                return ListTile(
+                  title: Text("Joueur ${action['playerId']} - ${action['action']}"),
+                  subtitle: Text(action['timestamp'].toString()),
+                  trailing: IconButton(
+                    icon: Icon(Icons.delete, color: Colors.red),
+                    onPressed: () {
+                      _deleteAction(index); // Supprimer l'action sélectionnée
+                      Navigator.of(context).pop(); // Fermer la modale après suppression
+                      _showActionHistory(); // Réouvrir la modale mise à jour
+                    },
+                  ),
+                );
+              },
+            ),
+          ),
+          actions: [
+            TextButton(
+              child: Text("Fermer"),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -52,6 +165,7 @@ Map<int, Map<String, int>> playerStats = {
       ),
       body: Column(
         children: [
+          // Affichage des statistiques des joueurs
           Expanded(
             child: GridView.builder(
               gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
@@ -61,219 +175,75 @@ Map<int, Map<String, int>> playerStats = {
               itemBuilder: (context, index) {
                 int playerId = playerStats.keys.elementAt(index);
                 return DragTarget<String>(
-               onAccept: (data) {
-  setState(() {
-    if (data == 'rebound') {
-      playerStats[playerId]!['rebounds'] = (playerStats[playerId]!['rebounds'] ?? 0) + 1;
-    } else if (data == 'assist') {
-      playerStats[playerId]!['assists'] = (playerStats[playerId]!['assists'] ?? 0) + 1;
-    } else if (data == 'steal') {
-      playerStats[playerId]!['steals'] = (playerStats[playerId]!['steals'] ?? 0) + 1;
-    } else if (data == 'block') {
-      playerStats[playerId]!['blocks'] = (playerStats[playerId]!['blocks'] ?? 0) + 1;
-    } else if (data == 'oneMade') {
-      playerStats[playerId]!['oneMade'] = (playerStats[playerId]!['oneMade'] ?? 0) + 1;
-      playerStats[playerId]!['points'] = (playerStats[playerId]!['points'] ?? 0) + 1;
-    } else if (data == 'oneMiss') {
-      playerStats[playerId]!['oneMiss'] = (playerStats[playerId]!['oneMiss'] ?? 0) + 1;
-    } else if (data == 'twoMade') {
-      playerStats[playerId]!['twoMade'] = (playerStats[playerId]!['twoMade'] ?? 0) + 1;
-      playerStats[playerId]!['points'] = (playerStats[playerId]!['points'] ?? 0) + 2;
-    } else if (data == 'twoMiss') {
-      playerStats[playerId]!['twoMiss'] = (playerStats[playerId]!['twoMiss'] ?? 0) + 1;
-    } else if (data == 'threeMade') {
-      playerStats[playerId]!['threeMade'] = (playerStats[playerId]!['threeMade'] ?? 0) + 1;
-      playerStats[playerId]!['points'] = (playerStats[playerId]!['points'] ?? 0) + 3;
-    } else if (data == 'threeMiss') {
-      playerStats[playerId]!['threeMiss'] = (playerStats[playerId]!['threeMiss'] ?? 0) + 1;
-    } else if (data == 'turnover') {
-      playerStats[playerId]!['turnover'] = (playerStats[playerId]!['turnover'] ?? 0) + 1;
-    }
-  });
-},
-
-
+                  onAccept: (data) {
+                    _applyAction(playerId, data);
+                  },
                   builder: (context, candidateData, rejectedData) {
-                   return Card(
-  elevation: 4,
-  child: Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      Text('Joueur $playerId'),
-      SizedBox(height: 10),
-      Text('Points: ${playerStats[playerId]!['points']}'),  // Points affichés ici
-      Text('Rebonds: ${playerStats[playerId]!['rebounds']}'),
-      Text('Assists: ${playerStats[playerId]!['assists']}'),
-      Text('Steals: ${playerStats[playerId]!['steals']}'),
-      Text('Blocks: ${playerStats[playerId]!['blocks']}'),
-      Text('1pt réussis: ${playerStats[playerId]!['oneMade']}'),
-      Text('1pt ratés: ${playerStats[playerId]!['oneMiss']}'),
-      Text('2pts réussis: ${playerStats[playerId]!['twoMade']}'),
-      Text('2pts ratés: ${playerStats[playerId]!['twoMiss']}'),
-      Text('3pts réussis: ${playerStats[playerId]!['threeMade']}'),
-      Text('3pts ratés: ${playerStats[playerId]!['threeMiss']}'),
-      Text('Turnovers: ${playerStats[playerId]!['turnover']}'),
-    ],
-  ),
-);
-
+                    return Card(
+                      elevation: 4,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text('Joueur $playerId'),
+                          SizedBox(height: 10),
+                          Text('Points: ${playerStats[playerId]!['points']}'),
+                          Text('Rebonds: ${playerStats[playerId]!['rebounds']}'),
+                          Text('Assists: ${playerStats[playerId]!['assists']}'),
+                          Text('Steals: ${playerStats[playerId]!['steals']}'),
+                          Text('Blocks: ${playerStats[playerId]!['blocks']}'),
+                          Text('1pt réussis: ${playerStats[playerId]!['oneMade']}'),
+                          Text('1pt ratés: ${playerStats[playerId]!['oneMiss']}'),
+                          Text('2pts réussis: ${playerStats[playerId]!['twoMade']}'),
+                          Text('2pts ratés: ${playerStats[playerId]!['twoMiss']}'),
+                          Text('3pts réussis: ${playerStats[playerId]!['threeMade']}'),
+                          Text('3pts ratés: ${playerStats[playerId]!['threeMiss']}'),
+                          Text('Turnovers: ${playerStats[playerId]!['turnover']}'),
+                        ],
+                      ),
+                    );
                   },
                 );
               },
             ),
           ),
+          // Boutons pour les actions des joueurs
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Column(
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Draggable<String>(
-                      data: 'rebound',
-                      feedback: Icon(Icons.sports_basketball, size: 50, color: Colors.orange),
-                      childWhenDragging: Icon(Icons.sports_basketball, size: 50, color: Colors.grey),
-                      child: Icon(Icons.sports_basketball, size: 50, color: Colors.orange),
-                    ),
-                    SizedBox(width: 20),
-                    Text('Glisser pour ajouter 1 rebond'),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Draggable<String>(
-                      data: 'assist',
-                      feedback: Icon(Icons.handshake, size: 50, color: Colors.blue),
-                      childWhenDragging: Icon(Icons.handshake, size: 50, color: Colors.grey),
-                      child: Icon(Icons.handshake, size: 50, color: Colors.blue),
-                    ),
-                    SizedBox(width: 20),
-                    Text('Glisser pour ajouter 1 assist'),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Draggable<String>(
-                      data: 'oneMade',
-                      feedback: Icon(Icons.looks_one, size: 50, color: Colors.green),
-                      childWhenDragging: Icon(Icons.looks_one, size: 50, color: Colors.grey),
-                      child: Icon(Icons.looks_one, size: 50, color: Colors.green),
-                    ),
-                    SizedBox(width: 20),
-                    Text('Glisser pour ajouter 1 panier à 1pt'),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Draggable<String>(
-                      data: 'twoMade',
-                      feedback: Icon(Icons.looks_two, size: 50, color: Colors.red),
-                      childWhenDragging: Icon(Icons.looks_two, size: 50, color: Colors.grey),
-                      child: Icon(Icons.looks_two, size: 50, color: Colors.red),
-                    ),
-                    SizedBox(width: 20),
-                    Text('Glisser pour ajouter 1 panier à 2pts'),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Draggable<String>(
-                      data: 'threeMade',
-                      feedback: Icon(Icons.threesixty, size: 50, color: Colors.purple),
-                      childWhenDragging: Icon(Icons.threesixty, size: 50, color: Colors.grey),
-                      child: Icon(Icons.threesixty, size: 50, color: Colors.purple),
-                    ),
-                    SizedBox(width: 20),
-                    Text('Glisser pour ajouter 1 panier à 3pts'),
-                  ],
-                ),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Draggable<String>(
-                      data: 'turnover',
-                      feedback: Icon(Icons.sync_problem, size: 50, color: Colors.black),
-                      childWhenDragging: Icon(Icons.sync_problem, size: 50, color: Colors.grey),
-                      child: Icon(Icons.sync_problem, size: 50, color: Colors.black),
-                    ),
-                    SizedBox(width: 20),
-                    Text('Glisser pour ajouter 1 turnover'),
-                  ],
-                ),
-              Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Draggable<String>(
-      data: 'steal',
-      feedback: Icon(Icons.security, size: 50, color: Colors.teal),
-      childWhenDragging: Icon(Icons.security, size: 50, color: Colors.grey),
-      child: Icon(Icons.security, size: 50, color: Colors.teal),
-    ),
-    SizedBox(width: 20),
-    Text('Glisser pour ajouter 1 interception'),
-  ],
-),
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Draggable<String>(
-      data: 'block',
-      feedback: Icon(Icons.block, size: 50, color: Colors.orange),
-      childWhenDragging: Icon(Icons.block, size: 50, color: Colors.grey),
-      child: Icon(Icons.block, size: 50, color: Colors.orange),
-    ),
-    SizedBox(width: 20),
-    Text('Glisser pour ajouter 1 contre'),
-  ],
-),
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Draggable<String>(
-      data: 'oneMiss',
-      feedback: Icon(Icons.looks_one_outlined, size: 50, color: Colors.red),
-      childWhenDragging: Icon(Icons.looks_one_outlined, size: 50, color: Colors.grey),
-      child: Icon(Icons.looks_one_outlined, size: 50, color: Colors.red),
-    ),
-    SizedBox(width: 20),
-    Text('Glisser pour ajouter 1 tir à 1pt raté'),
-  ],
-),
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Draggable<String>(
-      data: 'twoMiss',
-      feedback: Icon(Icons.looks_two_outlined, size: 50, color: Colors.red),
-      childWhenDragging: Icon(Icons.looks_two_outlined, size: 50, color: Colors.grey),
-      child: Icon(Icons.looks_two_outlined, size: 50, color: Colors.red),
-    ),
-    SizedBox(width: 20),
-    Text('Glisser pour ajouter 1 tir à 2pts raté'),
-  ],
-),
-Row(
-  mainAxisAlignment: MainAxisAlignment.center,
-  children: [
-    Draggable<String>(
-      data: 'threeMiss',
-      feedback: Icon(Icons.threesixty_outlined, size: 50, color: Colors.red),
-      childWhenDragging: Icon(Icons.threesixty_outlined, size: 50, color: Colors.grey),
-      child: Icon(Icons.threesixty_outlined, size: 50, color: Colors.red),
-    ),
-    SizedBox(width: 20),
-    Text('Glisser pour ajouter 1 tir à 3pts raté'),
-  ],
-),
-
-              ],
+            padding: const EdgeInsets.all(16.0),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+             children: [
+      _buildDraggableRow('rebound', Icons.sports_basketball, Colors.green, 'Ajouter 1 rebond'),
+      _buildDraggableRow('assist', Icons.group, Colors.blue, 'Ajouter 1 assist'),
+      _buildDraggableRow('steal', Icons.lock, Colors.orange, 'Ajouter 1 steal'),
+      _buildDraggableRow('block', Icons.block, Colors.red, 'Ajouter 1 block'),
+      _buildDraggableRow('oneMade', Icons.filter_1, Colors.purple, 'Ajouter 1 panier à 1pt'),
+      _buildDraggableRow('oneMiss', Icons.filter_1_outlined, Colors.purple, 'Tir à 1pt raté'),
+      _buildDraggableRow('twoMade', Icons.filter_2, Colors.indigo, 'Ajouter 1 panier à 2pts'),
+      _buildDraggableRow('twoMiss', Icons.filter_2_outlined, Colors.indigo, 'Tir à 2pts raté'),
+      _buildDraggableRow('threeMade', Icons.filter_3, Colors.brown, 'Ajouter 1 panier à 3pts'),
+      _buildDraggableRow('threeMiss', Icons.filter_3_outlined, Colors.brown, 'Tir à 3pts raté'),
+      _buildDraggableRow('turnover', Icons.error, Colors.grey, 'Ajouter 1 turnover'),
+    ],
             ),
           ),
+          ElevatedButton(
+            child: Text('Afficher l\'historique des actions'),
+            onPressed: _showActionHistory, // Ouvrir la modale d'historique
+          ),
         ],
+      ),
+    );
+  }
+
+  // Fonction utilitaire pour créer un Draggable
+  Widget _buildDraggableRow(String action, IconData icon, Color color, String tooltip) {
+    return Draggable<String>(
+      data: action,
+      feedback: Icon(icon, color: color, size: 40),
+      childWhenDragging: Icon(icon, color: Colors.black12),
+      child: Tooltip(
+        message: tooltip,
+        child: Icon(icon, color: color, size: 40),
       ),
     );
   }
