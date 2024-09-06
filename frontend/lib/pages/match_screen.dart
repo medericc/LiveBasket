@@ -10,12 +10,14 @@ class MatchScreen extends StatefulWidget {
 
 class _MatchScreenState extends State<MatchScreen> {
   // Structure pour les statistiques des joueurs
-  Map<int, Map<String, int>> playerStats = {
-    1: {'points': 0, 'rebounds': 0, 'assists': 0, 'oneMade': 0, 'twoMade': 0, 'threeMade': 0, 'turnover': 0},
-    2: {'points': 0, 'rebounds': 0, 'assists': 0, 'oneMade': 0, 'twoMade': 0, 'threeMade': 0, 'turnover': 0},
-    3: {'points': 0, 'rebounds': 0, 'assists': 0, 'oneMade': 0, 'twoMade': 0, 'threeMade': 0, 'turnover': 0},
-    4: {'points': 0, 'rebounds': 0, 'assists': 0, 'oneMade': 0, 'twoMade': 0, 'threeMade': 0, 'turnover': 0},
-  };
+// Structure pour les statistiques des joueurs
+Map<int, Map<String, int>> playerStats = {
+  1: {'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
+  2: {'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
+  3: {'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
+  4: {'rebounds': 0, 'assists': 0, 'steals': 0, 'blocks': 0, 'oneMade': 0, 'oneMiss': 0, 'twoMade': 0, 'twoMiss': 0, 'threeMade': 0, 'threeMiss': 0, 'turnover': 0},
+};
+
 
   // Méthode pour sauvegarder les stats temporairement
   void _saveStats() {
@@ -58,26 +60,34 @@ class _MatchScreenState extends State<MatchScreen> {
               itemBuilder: (context, index) {
                 int playerId = playerStats.keys.elementAt(index);
                 return DragTarget<String>(
-                  onAccept: (data) {
-                    setState(() {
-                      if (data == 'rebound') {
-                        playerStats[playerId]!['rebounds'] = (playerStats[playerId]!['rebounds'] ?? 0) + 1;
-                      } else if (data == 'assist') {
-                        playerStats[playerId]!['assists'] = (playerStats[playerId]!['assists'] ?? 0) + 1;
-                      } else if (data == 'oneMade') {
-                        playerStats[playerId]!['points'] = (playerStats[playerId]!['points'] ?? 0) + 1;
-                        playerStats[playerId]!['oneMade'] = (playerStats[playerId]!['oneMade'] ?? 0) + 1;
-                      } else if (data == 'twoMade') {
-                        playerStats[playerId]!['points'] = (playerStats[playerId]!['points'] ?? 0) + 2;
-                        playerStats[playerId]!['twoMade'] = (playerStats[playerId]!['twoMade'] ?? 0) + 1;
-                      } else if (data == 'threeMade') {
-                        playerStats[playerId]!['points'] = (playerStats[playerId]!['points'] ?? 0) + 3;
-                        playerStats[playerId]!['threeMade'] = (playerStats[playerId]!['threeMade'] ?? 0) + 1;
-                      } else if (data == 'turnover') {
-                        playerStats[playerId]!['turnover'] = (playerStats[playerId]!['turnover'] ?? 0) + 1;
-                      }
-                    });
-                  },
+                 onAccept: (data) {
+  setState(() {
+    if (data == 'rebound') {
+      playerStats[playerId]!['rebounds'] = (playerStats[playerId]!['rebounds'] ?? 0) + 1;
+    } else if (data == 'assist') {
+      playerStats[playerId]!['assists'] = (playerStats[playerId]!['assists'] ?? 0) + 1;
+    } else if (data == 'steal') {
+      playerStats[playerId]!['steals'] = (playerStats[playerId]!['steals'] ?? 0) + 1;
+    } else if (data == 'block') {
+      playerStats[playerId]!['blocks'] = (playerStats[playerId]!['blocks'] ?? 0) + 1;
+    } else if (data == 'oneMade') {
+      playerStats[playerId]!['oneMade'] = (playerStats[playerId]!['oneMade'] ?? 0) + 1;
+    } else if (data == 'oneMiss') {
+      playerStats[playerId]!['oneMiss'] = (playerStats[playerId]!['oneMiss'] ?? 0) + 1;
+    } else if (data == 'twoMade') {
+      playerStats[playerId]!['twoMade'] = (playerStats[playerId]!['twoMade'] ?? 0) + 1;
+    } else if (data == 'twoMiss') {
+      playerStats[playerId]!['twoMiss'] = (playerStats[playerId]!['twoMiss'] ?? 0) + 1;
+    } else if (data == 'threeMade') {
+      playerStats[playerId]!['threeMade'] = (playerStats[playerId]!['threeMade'] ?? 0) + 1;
+    } else if (data == 'threeMiss') {
+      playerStats[playerId]!['threeMiss'] = (playerStats[playerId]!['threeMiss'] ?? 0) + 1;
+    } else if (data == 'turnover') {
+      playerStats[playerId]!['turnover'] = (playerStats[playerId]!['turnover'] ?? 0) + 1;
+    }
+  });
+},
+
                   builder: (context, candidateData, rejectedData) {
                     return Card(
                       elevation: 4,
@@ -93,6 +103,12 @@ class _MatchScreenState extends State<MatchScreen> {
                           Text('2pt: ${playerStats[playerId]!['twoMade']}'),
                           Text('3pt: ${playerStats[playerId]!['threeMade']}'),
                           Text('Turnovers: ${playerStats[playerId]!['turnover']}'),
+                          Text('Steals: ${playerStats[playerId]!['steals']}'),
+Text('Blocks: ${playerStats[playerId]!['blocks']}'),
+Text('1pt ratés: ${playerStats[playerId]!['oneMiss']}'),
+Text('2pts ratés: ${playerStats[playerId]!['twoMiss']}'),
+Text('3pts ratés: ${playerStats[playerId]!['threeMiss']}'),
+
                         ],
                       ),
                     );
@@ -183,6 +199,72 @@ class _MatchScreenState extends State<MatchScreen> {
                     Text('Glisser pour ajouter 1 turnover'),
                   ],
                 ),
+              Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Draggable<String>(
+      data: 'steal',
+      feedback: Icon(Icons.security, size: 50, color: Colors.teal),
+      childWhenDragging: Icon(Icons.security, size: 50, color: Colors.grey),
+      child: Icon(Icons.security, size: 50, color: Colors.teal),
+    ),
+    SizedBox(width: 20),
+    Text('Glisser pour ajouter 1 interception'),
+  ],
+),
+Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Draggable<String>(
+      data: 'block',
+      feedback: Icon(Icons.block, size: 50, color: Colors.orange),
+      childWhenDragging: Icon(Icons.block, size: 50, color: Colors.grey),
+      child: Icon(Icons.block, size: 50, color: Colors.orange),
+    ),
+    SizedBox(width: 20),
+    Text('Glisser pour ajouter 1 contre'),
+  ],
+),
+Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Draggable<String>(
+      data: 'oneMiss',
+      feedback: Icon(Icons.looks_one_outlined, size: 50, color: Colors.red),
+      childWhenDragging: Icon(Icons.looks_one_outlined, size: 50, color: Colors.grey),
+      child: Icon(Icons.looks_one_outlined, size: 50, color: Colors.red),
+    ),
+    SizedBox(width: 20),
+    Text('Glisser pour ajouter 1 tir à 1pt raté'),
+  ],
+),
+Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Draggable<String>(
+      data: 'twoMiss',
+      feedback: Icon(Icons.looks_two_outlined, size: 50, color: Colors.red),
+      childWhenDragging: Icon(Icons.looks_two_outlined, size: 50, color: Colors.grey),
+      child: Icon(Icons.looks_two_outlined, size: 50, color: Colors.red),
+    ),
+    SizedBox(width: 20),
+    Text('Glisser pour ajouter 1 tir à 2pts raté'),
+  ],
+),
+Row(
+  mainAxisAlignment: MainAxisAlignment.center,
+  children: [
+    Draggable<String>(
+      data: 'threeMiss',
+      feedback: Icon(Icons.threesixty_outlined, size: 50, color: Colors.red),
+      childWhenDragging: Icon(Icons.threesixty_outlined, size: 50, color: Colors.grey),
+      child: Icon(Icons.threesixty_outlined, size: 50, color: Colors.red),
+    ),
+    SizedBox(width: 20),
+    Text('Glisser pour ajouter 1 tir à 3pts raté'),
+  ],
+),
+
               ],
             ),
           ),
