@@ -154,21 +154,45 @@ Map<String, dynamic> _parseStats(String statString) {
 void _stopMatch() async {
   final prefs = await SharedPreferences.getInstance();
 
-  // Sauvegarder les statistiques des joueurs pour l'équipe
+  // Sauvegarde des statistiques cumulées et du nombre de matchs joués pour chaque joueur
   for (int playerId = 1; playerId <= widget.players.length; playerId++) {
     String playerKey = 'stats_${widget.teamName}_${widget.players[playerId - 1]}';
-    
-    // Sauvegarde des stats sous forme de map
-    await prefs.setString(playerKey, playerStats[playerId].toString());
+    String matchCountKey = 'matches_${widget.teamName}_${widget.players[playerId - 1]}';
+
+    // Charger les statistiques actuelles sauvegardées (s'il y en a)
+    String? savedStatsString = prefs.getString(playerKey);
+    Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
+
+    // Charger le nombre de matchs joués (s'il y en a)
+    int matchCount = prefs.getInt(matchCountKey) ?? 0;
+
+    // Cumuler les nouvelles statistiques avec celles existantes
+    playerStats[playerId]!.forEach((statKey, statValue) {
+      savedStats[statKey] = (savedStats[statKey] ?? 0) + statValue;
+    });
+
+    // Incrémenter le nombre de matchs joués
+    matchCount++;
+
+    // Sauvegarder les statistiques cumulées
+    await prefs.setString(playerKey, savedStats.toString());
+
+    // Sauvegarder le nombre de matchs joués
+    await prefs.setInt(matchCountKey, matchCount);
+
+    // Calculer et afficher la moyenne des points par match
+    double averagePoints = (savedStats['points'] ?? 0) / matchCount;
+    print('Moyenne de points pour ${widget.players[playerId - 1]}: $averagePoints');
   }
-  
+
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Match terminé et statistiques sauvegardées pour l\'équipe ${widget.teamName}!')),
+    SnackBar(content: Text('Match terminé, statistiques cumulées et moyennes sauvegardées pour l\'équipe ${widget.teamName}!')),
   );
 
   // Quitter l'écran du match
   Navigator.pop(context);
 }
+
 
 
   void _showActionHistory() {
