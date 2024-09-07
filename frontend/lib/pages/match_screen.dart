@@ -115,18 +115,40 @@ class _MatchScreenState extends State<MatchScreen> {
 void _saveStats() async {
   final prefs = await SharedPreferences.getInstance();
 
-  // Sauvegarde des statistiques des joueurs pour l'équipe
+  // Sauvegarde des statistiques cumulées des joueurs pour l'équipe
   for (int playerId = 1; playerId <= widget.players.length; playerId++) {
     String playerKey = 'stats_${widget.teamName}_${widget.players[playerId - 1]}';
     
-    // Sauvegarde des stats sous forme de map
-    await prefs.setString(playerKey, playerStats[playerId].toString());
+    // Charger les statistiques actuelles sauvegardées (s'il y en a)
+    String? savedStatsString = prefs.getString(playerKey);
+    Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
+
+    // Cumuler les nouvelles statistiques avec celles existantes
+    playerStats[playerId]!.forEach((statKey, statValue) {
+      savedStats[statKey] = (savedStats[statKey] ?? 0) + statValue;
+    });
+
+    // Sauvegarder les nouvelles statistiques cumulées
+    await prefs.setString(playerKey, savedStats.toString());
   }
-  
+
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Statistiques sauvegardées pour l\'équipe ${widget.teamName}!')),
+    SnackBar(content: Text('Statistiques cumulées sauvegardées pour l\'équipe ${widget.teamName}!')),
   );
 }
+
+Map<String, dynamic> _parseStats(String statString) {
+  statString = statString.replaceAll(RegExp(r'[{}]'), '');
+  List<String> entries = statString.split(', ');
+
+  Map<String, dynamic> stats = {};
+  for (var entry in entries) {
+    var splitEntry = entry.split(': ');
+    stats[splitEntry[0]] = int.parse(splitEntry[1]);
+  }
+  return stats;
+}
+
 
 
 void _stopMatch() async {

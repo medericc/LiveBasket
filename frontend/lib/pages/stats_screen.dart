@@ -1,17 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class Stats extends StatefulWidget {
+class StatsScreen extends StatefulWidget {
   final String teamName;
   final List<String> players;
 
-  Stats({required this.teamName, required this.players});
+  StatsScreen({required this.teamName, required this.players});
 
   @override
-  _StatsState createState() => _StatsState();
+  _StatsScreenState createState() => _StatsScreenState();
 }
 
-class _StatsState extends State<Stats> {
+class _StatsScreenState extends State<StatsScreen> {
   Map<String, Map<String, dynamic>> playerStats = {};
 
   @override
@@ -27,10 +27,9 @@ class _StatsState extends State<Stats> {
     for (var player in widget.players) {
       String playerKey = 'stats_${widget.teamName}_$player';
       String? statString = prefs.getString(playerKey);
-      
+
       if (statString != null) {
-        Map<String, dynamic> statMap = _parseStats(statString);
-        stats[player] = statMap;
+        stats[player] = _parseStats(statString);
       } else {
         stats[player] = {
           'points': 0,
@@ -54,9 +53,7 @@ class _StatsState extends State<Stats> {
     });
   }
 
-  // Parse the saved stats from a string format into a Map
   Map<String, dynamic> _parseStats(String statString) {
-    // Remove braces and split by commas to create a map-like structure
     statString = statString.replaceAll(RegExp(r'[{}]'), '');
     List<String> entries = statString.split(', ');
 
@@ -72,7 +69,7 @@ class _StatsState extends State<Stats> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Statistiques des joueurs de ${widget.teamName}'),
+        title: Text('Statistiques cumulées de ${widget.teamName}'),
       ),
       body: playerStats.isEmpty
           ? Center(child: Text('Aucune statistique disponible pour cette équipe.'))
@@ -88,15 +85,15 @@ class _StatsState extends State<Stats> {
                     subtitle: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text('Points: ${stats['points']}'),
-                        Text('Rebonds: ${stats['rebounds']}'),
-                        Text('Assistances: ${stats['assists']}'),
-                        Text('Balles volées: ${stats['steals']}'),
-                        Text('Contres: ${stats['blocks']}'),
+                        Text('Points cumulés: ${stats['points']}'),
+                        Text('Rebonds cumulés: ${stats['rebounds']}'),
+                        Text('Assistances cumulées: ${stats['assists']}'),
+                        Text('Balles volées cumulées: ${stats['steals']}'),
+                        Text('Contres cumulés: ${stats['blocks']}'),
                         Text('LF réussis: ${stats['oneMade']} - LF ratés: ${stats['oneMiss']}'),
                         Text('2PT réussis: ${stats['twoMade']} - 2PT ratés: ${stats['twoMiss']}'),
                         Text('3PT réussis: ${stats['threeMade']} - 3PT ratés: ${stats['threeMiss']}'),
-                        Text('Turnovers: ${stats['turnover']}'),
+                        Text('Turnovers cumulés: ${stats['turnover']}'),
                       ],
                     ),
                   ),
