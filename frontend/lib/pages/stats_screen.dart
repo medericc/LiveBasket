@@ -1,25 +1,105 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
-class Stats extends StatelessWidget {
+class Stats extends StatefulWidget {
   final String teamName;
   final List<String> players;
 
-  // Le constructeur reçoit les joueurs et le nom de l'équipe
   Stats({required this.teamName, required this.players});
+
+  @override
+  _StatsState createState() => _StatsState();
+}
+
+class _StatsState extends State<Stats> {
+  Map<String, Map<String, dynamic>> playerStats = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPlayerStats();
+  }
+
+  Future<void> _loadPlayerStats() async {
+    final prefs = await SharedPreferences.getInstance();
+    Map<String, Map<String, dynamic>> stats = {};
+
+    for (var player in widget.players) {
+      String playerKey = 'stats_${widget.teamName}_$player';
+      String? statString = prefs.getString(playerKey);
+      
+      if (statString != null) {
+        Map<String, dynamic> statMap = _parseStats(statString);
+        stats[player] = statMap;
+      } else {
+        stats[player] = {
+          'points': 0,
+          'rebounds': 0,
+          'assists': 0,
+          'steals': 0,
+          'blocks': 0,
+          'oneMade': 0,
+          'oneMiss': 0,
+          'twoMade': 0,
+          'twoMiss': 0,
+          'threeMade': 0,
+          'threeMiss': 0,
+          'turnover': 0
+        };
+      }
+    }
+
+    setState(() {
+      playerStats = stats;
+    });
+  }
+
+  // Parse the saved stats from a string format into a Map
+  Map<String, dynamic> _parseStats(String statString) {
+    // Remove braces and split by commas to create a map-like structure
+    statString = statString.replaceAll(RegExp(r'[{}]'), '');
+    List<String> entries = statString.split(', ');
+
+    Map<String, dynamic> stats = {};
+    for (var entry in entries) {
+      var splitEntry = entry.split(': ');
+      stats[splitEntry[0]] = int.parse(splitEntry[1]);
+    }
+    return stats;
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Joueurs de $teamName'),
+        title: Text('Statistiques des joueurs de ${widget.teamName}'),
       ),
-      body: players.isEmpty
-          ? Center(child: Text('Aucun joueur enregistré pour cette équipe.'))
+      body: playerStats.isEmpty
+          ? Center(child: Text('Aucune statistique disponible pour cette équipe.'))
           : ListView.builder(
-              itemCount: players.length,
+              itemCount: widget.players.length,
               itemBuilder: (context, index) {
-                return ListTile(
-                  title: Text(players[index]),
+                String player = widget.players[index];
+                var stats = playerStats[player] ?? {};
+
+                return Card(
+                  child: ListTile(
+                    title: Text(player),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Points: ${stats['points']}'),
+                        Text('Rebonds: ${stats['rebounds']}'),
+                        Text('Assistances: ${stats['assists']}'),
+                        Text('Balles volées: ${stats['steals']}'),
+                        Text('Contres: ${stats['blocks']}'),
+                        Text('LF réussis: ${stats['oneMade']} - LF ratés: ${stats['oneMiss']}'),
+                        Text('2PT réussis: ${stats['twoMade']} - 2PT ratés: ${stats['twoMiss']}'),
+                        Text('3PT réussis: ${stats['threeMade']} - 3PT ratés: ${stats['threeMiss']}'),
+                        Text('Turnovers: ${stats['turnover']}'),
+                      ],
+                    ),
+                  ),
                 );
               },
             ),

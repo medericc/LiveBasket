@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart'; // Import nécessaire pour SharedPreferences
 
 class MatchScreen extends StatefulWidget {
   final String teamName;
@@ -110,15 +111,43 @@ class _MatchScreenState extends State<MatchScreen> {
     }
   }
 
-  void _saveStats() {
-    print(playerStats);
-    print("Statistiques sauvegardées !");
-  }
 
-  void _stopMatch() {
-    print("Match terminé et stats sauvegardées !");
-    Navigator.pop(context);
+void _saveStats() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  // Sauvegarde des statistiques des joueurs pour l'équipe
+  for (int playerId = 1; playerId <= widget.players.length; playerId++) {
+    String playerKey = 'stats_${widget.teamName}_${widget.players[playerId - 1]}';
+    
+    // Sauvegarde des stats sous forme de map
+    await prefs.setString(playerKey, playerStats[playerId].toString());
   }
+  
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Statistiques sauvegardées pour l\'équipe ${widget.teamName}!')),
+  );
+}
+
+
+void _stopMatch() async {
+  final prefs = await SharedPreferences.getInstance();
+
+  // Sauvegarder les statistiques des joueurs pour l'équipe
+  for (int playerId = 1; playerId <= widget.players.length; playerId++) {
+    String playerKey = 'stats_${widget.teamName}_${widget.players[playerId - 1]}';
+    
+    // Sauvegarde des stats sous forme de map
+    await prefs.setString(playerKey, playerStats[playerId].toString());
+  }
+  
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Match terminé et statistiques sauvegardées pour l\'équipe ${widget.teamName}!')),
+  );
+
+  // Quitter l'écran du match
+  Navigator.pop(context);
+}
+
 
   void _showActionHistory() {
     showDialog(
