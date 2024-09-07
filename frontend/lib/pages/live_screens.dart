@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:shared_preferences/shared_preferences.dart'; // Ensure this import is correct
-import 'package:nom_du_projet/pages/main_screen.dart';// Import the main_screen.dart file
+import 'package:nom_du_projet/pages/match_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LiveScreen extends StatefulWidget {
   @override
@@ -11,15 +11,28 @@ class _LiveScreenState extends State<LiveScreen> {
   final TextEditingController _teamController = TextEditingController();
   final List<TextEditingController> _playerControllers = [];
   int _playerCount = 0;
+  List<String> _existingTeams = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadExistingTeams();
+  }
 
   @override
   void dispose() {
-    // Dispose of controllers to avoid memory leaks
     _teamController.dispose();
     for (var controller in _playerControllers) {
       controller.dispose();
     }
     super.dispose();
+  }
+
+  Future<void> _loadExistingTeams() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _existingTeams = prefs.getStringList('teams') ?? [];
+    });
   }
 
   void _addPlayer() {
@@ -39,8 +52,29 @@ class _LiveScreenState extends State<LiveScreen> {
 
   Future<void> _saveTeamAndPlayers(String teamName, List<String> players) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('teamName', teamName);
-    await prefs.setStringList('players', players);
+    final teams = prefs.getStringList('teams') ?? [];
+
+    if (!teams.contains(teamName)) {
+      teams.add(teamName);
+      await prefs.setStringList('teams', teams);
+    }
+
+    await prefs.setStringList('players_$teamName', players);
+  }
+
+  Future<void> _loadTeamPlayers(String teamName) async {
+    final prefs = await SharedPreferences.getInstance();
+    final players = prefs.getStringList('players_$teamName') ?? [];
+
+    _teamController.text = teamName;
+    _playerControllers.clear();
+
+    setState(() {
+      _playerCount = players.length;
+      for (var player in players) {
+        _playerControllers.add(TextEditingController(text: player));
+      }
+    });
   }
 
   void _startMatch() async {
@@ -52,7 +86,7 @@ class _LiveScreenState extends State<LiveScreen> {
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => MainScreen(
+          builder: (context) => MatchScreen(
             teamName: teamName,
             players: players,
           ),
@@ -80,6 +114,21 @@ class _LiveScreenState extends State<LiveScreen> {
               decoration: InputDecoration(
                 labelText: 'Nom de l\'équipe',
               ),
+            ),
+            SizedBox(height: 16),
+            DropdownButton<String>(
+              hint: Text('Sélectionner une équipe existante'),
+              items: _existingTeams.map((String team) {
+                return DropdownMenuItem<String>(
+                  value: team,
+                  child: Text(team),
+                );
+              }).toList(),
+              onChanged: (String? selectedTeam) {
+                if (selectedTeam != null) {
+                  _loadTeamPlayers(selectedTeam);
+                }
+              },
             ),
             SizedBox(height: 16),
             Text('Joueurs'),
