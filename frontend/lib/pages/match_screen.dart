@@ -154,33 +154,31 @@ Map<String, dynamic> _parseStats(String statString) {
 void _stopMatch() async {
   final prefs = await SharedPreferences.getInstance();
 
-  // Sauvegarde des statistiques cumulées et du nombre de matchs joués pour chaque joueur
+  // Créer une entrée pour cet historique de match
+  String matchHistoryKey = 'history_${widget.teamName}';
+  List<String> matchHistory = prefs.getStringList(matchHistoryKey) ?? [];
+
+  String matchEntry = DateTime.now().toString(); // Utiliser la date comme identifiant unique du match
+  matchHistory.add(matchEntry);
+  await prefs.setStringList(matchHistoryKey, matchHistory);
+
+  // Sauvegarde des statistiques et matchs joués pour chaque joueur
   for (int playerId = 1; playerId <= widget.players.length; playerId++) {
     String playerKey = 'stats_${widget.teamName}_${widget.players[playerId - 1]}';
     String matchCountKey = 'matches_${widget.teamName}_${widget.players[playerId - 1]}';
 
-    // Charger les statistiques actuelles sauvegardées (s'il y en a)
     String? savedStatsString = prefs.getString(playerKey);
     Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
-
-    // Charger le nombre de matchs joués (s'il y en a)
     int matchCount = prefs.getInt(matchCountKey) ?? 0;
 
-    // Cumuler les nouvelles statistiques avec celles existantes
     playerStats[playerId]!.forEach((statKey, statValue) {
       savedStats[statKey] = (savedStats[statKey] ?? 0) + statValue;
     });
 
-    // Incrémenter le nombre de matchs joués
     matchCount++;
-
-    // Sauvegarder les statistiques cumulées
     await prefs.setString(playerKey, savedStats.toString());
-
-    // Sauvegarder le nombre de matchs joués
     await prefs.setInt(matchCountKey, matchCount);
 
-    // Calculer et afficher la moyenne des points par match
     double averagePoints = (savedStats['points'] ?? 0) / matchCount;
     print('Moyenne de points pour ${widget.players[playerId - 1]}: $averagePoints');
   }
@@ -189,9 +187,9 @@ void _stopMatch() async {
     SnackBar(content: Text('Match terminé, statistiques cumulées et moyennes sauvegardées pour l\'équipe ${widget.teamName}!')),
   );
 
-  // Quitter l'écran du match
   Navigator.pop(context);
 }
+
 
 
 

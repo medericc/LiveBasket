@@ -5,7 +5,7 @@ import 'models/match_stat.dart';
 import 'pages/main_screen.dart';
 import 'pages/home_screen.dart';
 import 'pages/team_screen.dart';
-import 'pages/player_screen.dart';
+import 'pages/hist_screen.dart';
 
 void main() {
   runApp(MyApp());
@@ -37,7 +37,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     TeamsScreen(),
-    PlayersScreen(),
+    
   ];
 
   // Méthode pour changer l'index lorsqu'un élément est tapé
@@ -64,10 +64,7 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: Icon(Icons.people),
             label: 'Teams',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Players',
-          ),
+        
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: Colors.blue,

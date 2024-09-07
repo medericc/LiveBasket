@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 // Importer les écrans que tu as définis ailleurs
 import './home_screen.dart';  // Assurez-vous que ces fichiers existent et sont importés correctement
 import './team_screen.dart';
-import './player_screen.dart';
+import './hist_screen.dart';
 
 
 void main() {
@@ -34,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
   final List<Widget> _widgetOptions = <Widget>[
     HomeScreen(),
     TeamsScreen(),
-    PlayersScreen(),
+   
   ];
 
   void _onItemTapped(int index) {
