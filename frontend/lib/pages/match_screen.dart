@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart'; // Import nécessaire pour SharedPreferences
-
+import 'dart:convert';
 class MatchScreen extends StatefulWidget {
   final String teamName;
   final List<String> players;
@@ -98,30 +98,35 @@ class _MatchScreenState extends State<MatchScreen> {
     return totalAttempts > 0 ? (made / totalAttempts) * 100 : 0.0;
   }
 
-  void _deleteAction(int index) {
-    if (index >= 0 && index < actionHistory.length) {
-      var action = actionHistory[index];
-      int playerId = action['playerId'];
-      String actionType = action['action'];
+void _deleteAction(int index) {
+  if (index >= 0 && index < actionHistory.length) {
+    var action = actionHistory[index];
+    int playerId = action['playerId'];
+    String actionType = action['action'];
 
-      setState(() {
-        _applyAction(playerId, actionType, undo: true);
-        actionHistory.removeAt(index);
-      });
-    }
+    setState(() {
+      _applyAction(playerId, actionType, undo: true); // Annuler l'action
+      actionHistory.removeAt(index); // Supprimer l'action de l'historique
+    });
   }
+}
+
+
+
+
+
+
 
 
 void _saveStats() async {
   final prefs = await SharedPreferences.getInstance();
 
-  // Sauvegarde des statistiques cumulées des joueurs pour l'équipe
   for (int playerId = 1; playerId <= widget.players.length; playerId++) {
     String playerKey = 'stats_${widget.teamName}_${widget.players[playerId - 1]}';
     
     // Charger les statistiques actuelles sauvegardées (s'il y en a)
     String? savedStatsString = prefs.getString(playerKey);
-    Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
+    Map<String, dynamic> savedStats = savedStatsString != null ? jsonDecode(savedStatsString) : {};
 
     // Cumuler les nouvelles statistiques avec celles existantes
     playerStats[playerId]!.forEach((statKey, statValue) {
@@ -129,7 +134,7 @@ void _saveStats() async {
     });
 
     // Sauvegarder les nouvelles statistiques cumulées
-    await prefs.setString(playerKey, savedStats.toString());
+    await prefs.setString(playerKey, jsonEncode(savedStats)); // Utilisation de jsonEncode pour sérialiser
   }
 
   ScaffoldMessenger.of(context).showSnackBar(
@@ -137,22 +142,13 @@ void _saveStats() async {
   );
 }
 
-Map<String, dynamic> _parseStats(String statString) {
-  statString = statString.replaceAll(RegExp(r'[{}]'), '');
-  List<String> entries = statString.split(', ');
-
-  Map<String, dynamic> stats = {};
-  for (var entry in entries) {
-    var splitEntry = entry.split(': ');
-    stats[splitEntry[0]] = int.parse(splitEntry[1]);
-  }
-  return stats;
-}
-
 
 
 void _stopMatch() async {
   final prefs = await SharedPreferences.getInstance();
+
+  // Appel de _saveStats()
+  _saveStats();
 
   // Créer une entrée pour cet historique de match
   String matchHistoryKey = 'history_${widget.teamName}';
@@ -162,33 +158,26 @@ void _stopMatch() async {
   matchHistory.add(matchEntry);
   await prefs.setStringList(matchHistoryKey, matchHistory);
 
-  // Sauvegarde des statistiques et matchs joués pour chaque joueur
+  // Sauvegarder les statistiques du match pour chaque joueur
   for (int playerId = 1; playerId <= widget.players.length; playerId++) {
-    String playerKey = 'stats_${widget.teamName}_${widget.players[playerId - 1]}';
-    String matchCountKey = 'matches_${widget.teamName}_${widget.players[playerId - 1]}';
-
-    String? savedStatsString = prefs.getString(playerKey);
-    Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
-    int matchCount = prefs.getInt(matchCountKey) ?? 0;
-
-    playerStats[playerId]!.forEach((statKey, statValue) {
-      savedStats[statKey] = (savedStats[statKey] ?? 0) + statValue;
-    });
-
-    matchCount++;
-    await prefs.setString(playerKey, savedStats.toString());
-    await prefs.setInt(matchCountKey, matchCount);
-
-    double averagePoints = (savedStats['points'] ?? 0) / matchCount;
-    print('Moyenne de points pour ${widget.players[playerId - 1]}: $averagePoints');
+    String matchStatsKey = 'match_${widget.teamName}_${widget.players[playerId - 1]}_$matchEntry';
+    
+    // Stocker les statistiques du match pour chaque joueur
+    await prefs.setString(matchStatsKey, jsonEncode(playerStats[playerId])); // Sauvegarder les statistiques sous forme de JSON
   }
 
+  // Afficher un message à l'utilisateur
   ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(content: Text('Match terminé, statistiques cumulées et moyennes sauvegardées pour l\'équipe ${widget.teamName}!')),
+    SnackBar(content: Text('Match terminé et statistiques sauvegardées pour ${widget.teamName}!')),
   );
 
+  // Revenir à l'écran précédent
   Navigator.pop(context);
 }
+
+
+
+
 
 
 

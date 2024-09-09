@@ -1,11 +1,12 @@
+import 'dart:convert'; // Pour jsonEncode et jsonDecode
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HistScreen extends StatefulWidget {
   final String teamName;
-  final List<String> players; // Add players list to pass from TeamsScreen
+  final List<String> players; // Ajout de la liste des joueurs passée depuis TeamsScreen
 
-  HistScreen({required this.teamName, required this.players}); // Ensure players are passed
+  HistScreen({required this.teamName, required this.players}); // Assure que les joueurs sont passés
 
   @override
   _HistScreenState createState() => _HistScreenState();
@@ -29,16 +30,15 @@ class _HistScreenState extends State<HistScreen> {
     });
   }
 
-  // This is the method you provided, which deletes a match and adjusts player stats
   Future<void> _deleteMatchAndStats(String matchEntry) async {
     final prefs = await SharedPreferences.getInstance();
 
-    // Remove cumulative stats for each player
+    // Supprime les stats cumulées pour chaque joueur
     for (var player in widget.players) {
       String playerKey = 'stats_${widget.teamName}_$player';
       String matchCountKey = 'matches_${widget.teamName}_$player';
 
-      // Adjust stats based on removed match
+      // Ajuste les stats en fonction du match supprimé
       String? savedStatsString = prefs.getString(playerKey);
       Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
 
@@ -48,29 +48,79 @@ class _HistScreenState extends State<HistScreen> {
         await prefs.setInt(matchCountKey, matchCount);
       }
 
-      // Optionally reset or recalculate stats for this player
-      // await prefs.setString(playerKey, recalculatedStats.toString());
+      // Optionnel : réinitialise ou recalcule les stats
     }
 
-    // Delete the match from the history
+    // Supprime le match de l'historique
     _deleteMatch(matchEntry);
   }
 
-  // Delete the match from SharedPreferences
+  Future<void> _loadCumulativeStats() async {
+    final prefs = await SharedPreferences.getInstance();
+  
+    // Charge les stats cumulées pour chaque joueur
+    for (var player in widget.players) {
+      String playerKey = 'stats_${widget.teamName}_$player';
+    
+      // Charge les stats cumulées sauvegardées
+      String? cumulativeStatsString = prefs.getString(playerKey);
+      if (cumulativeStatsString != null) {
+        Map<String, int> cumulativeStats = Map<String, int>.from(jsonDecode(cumulativeStatsString));
+      
+        // Mets à jour l'interface utilisateur avec les nouvelles stats
+        setState(() {
+          // Ajoute la logique pour afficher les stats ou les stocker
+        });
+      }
+    }
+  }
+
   Future<void> _deleteMatch(String matchEntry) async {
     final prefs = await SharedPreferences.getInstance();
+
+    // Supprime l'entrée du match de l'historique
     String matchHistoryKey = 'history_${widget.teamName}';
-
-    setState(() {
-      matchHistory.remove(matchEntry);
-    });
-
-    // Update the match history in SharedPreferences
+    List<String> matchHistory = prefs.getStringList(matchHistoryKey) ?? [];
+    matchHistory.remove(matchEntry);
     await prefs.setStringList(matchHistoryKey, matchHistory);
 
+    // Supprime les stats de chaque joueur pour ce match
+    for (String player in widget.players) {
+      String matchStatsKey = 'match_${widget.teamName}_${player}_$matchEntry';
+
+      // Charge les stats du match à supprimer
+      String? matchStatsString = prefs.getString(matchStatsKey);
+      if (matchStatsString != null) {
+        Map<String, int> matchStats = Map<String, int>.from(jsonDecode(matchStatsString));
+
+        // Soustrait les stats du match supprimé des stats cumulées
+        String playerKey = 'stats_${widget.teamName}_$player';
+        String? cumulativeStatsString = prefs.getString(playerKey);
+        Map<String, int> cumulativeStats = cumulativeStatsString != null
+            ? Map<String, int>.from(jsonDecode(cumulativeStatsString))
+            : {};
+
+        matchStats.forEach((statKey, statValue) {
+          cumulativeStats[statKey] = (cumulativeStats[statKey] ?? 0) - statValue;
+        });
+
+        // Sauvegarde les stats cumulées mises à jour
+        await prefs.setString(playerKey, jsonEncode(cumulativeStats));
+      }
+
+      // Supprime les stats spécifiques à ce match
+      await prefs.remove(matchStatsKey);
+    }
+
+    // Affiche un message pour confirmer la suppression
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Match supprimé de l\'historique.')),
+      SnackBar(content: Text('Match supprimé et statistiques mises à jour pour ${widget.teamName}.')),
     );
+
+    // Recharge les stats pour refléter les changements
+    setState(() {
+      _loadCumulativeStats(); // Recharger les stats cumulées
+    });
   }
 
   @override
@@ -90,7 +140,7 @@ class _HistScreenState extends State<HistScreen> {
                   trailing: IconButton(
                     icon: Icon(Icons.delete, color: Colors.red),
                     onPressed: () {
-                      _deleteMatchAndStats(matchEntry); // Call new method to delete match and stats
+                      _cancelMatch(matchEntry); // Appel de la méthode pour annuler le match
                     },
                   ),
                 );
@@ -99,9 +149,42 @@ class _HistScreenState extends State<HistScreen> {
     );
   }
 
-  // Helper method to parse saved stats (you need to implement this)
+  Future<void> _cancelMatch(String matchEntry) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // Supprime le match de l'historique
+    _deleteMatch(matchEntry);
+
+    // Réinitialise les stats pour chaque joueur
+    for (var player in widget.players) {
+      String playerKey = 'stats_${widget.teamName}_$player';
+      String matchCountKey = 'matches_${widget.teamName}_$player';
+
+      // Charge les stats sauvegardées
+      String? savedStatsString = prefs.getString(playerKey);
+      Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
+
+      int matchCount = prefs.getInt(matchCountKey) ?? 0;
+
+      if (matchCount > 0) {
+        matchCount--;
+
+        // Réinitialise ou recalcule les stats en fonction des matchs annulés
+
+        await prefs.setInt(matchCountKey, matchCount);
+
+        // Sauvegarde les nouvelles stats après recalcul
+        await prefs.setString(playerKey, savedStats.toString());
+      }
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Le match du $matchEntry a été annulé.')),
+    );
+  }
+
+  // Méthode auxiliaire pour analyser les stats sauvegardées
   Map<String, dynamic> _parseStats(String statsString) {
-    // Implement the parsing logic based on your stored stats structure
-    return {};
+    return jsonDecode(statsString);
   }
 }
