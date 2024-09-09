@@ -234,11 +234,7 @@ void _stopMatch() async {
             onPressed: _showActionHistory,
             tooltip: 'Historique des actions',
           ),
-          IconButton(
-            icon: Icon(Icons.save),
-            onPressed: _saveStats,
-            tooltip: 'Sauvegarder les stats',
-          ),
+        
           IconButton(
             icon: Icon(Icons.stop),
             onPressed: _stopMatch,

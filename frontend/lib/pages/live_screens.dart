@@ -35,20 +35,57 @@ class _LiveScreenState extends State<LiveScreen> {
     });
   }
 
-  void _addPlayer() {
-    setState(() {
-      _playerCount++;
-      _playerControllers.add(TextEditingController());
-    });
+void _addPlayer() {
+  setState(() {
+    _playerCount++;
+    _playerControllers.add(TextEditingController());
+  });
+}
+
+void _removePlayer(int index) {
+  setState(() {
+    _playerControllers[index].dispose();
+    _playerControllers.removeAt(index);
+    _playerCount--;
+  });
+}
+
+bool _isPlayerNameUnique(String playerName) {
+  final existingPlayers = _playerControllers.map((controller) => controller.text).toList();
+  return !existingPlayers.contains(playerName);
+}
+
+
+void _startMatch() async {
+  final teamName = _teamController.text;
+  final players = _playerControllers.map((controller) => controller.text).toList();
+
+  // Vérification des noms uniques
+  if (players.toSet().length != players.length) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Les noms des joueurs doivent être uniques.')),
+    );
+    return;
   }
 
-  void _removePlayer(int index) {
-    setState(() {
-      _playerControllers[index].dispose();
-      _playerControllers.removeAt(index);
-      _playerCount--;
-    });
+  // Vérifier si l'équipe et tous les joueurs sont renseignés
+  if (teamName.isNotEmpty && players.every((player) => player.isNotEmpty)) {
+    await _saveTeamAndPlayers(teamName, players);
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => MatchScreen(
+          teamName: teamName,
+          players: players,
+        ),
+      ),
+    );
+  } else {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Veuillez entrer le nom de l\'équipe et tous les noms des joueurs.')),
+    );
   }
+}
 
   Future<void> _saveTeamAndPlayers(String teamName, List<String> players) async {
     final prefs = await SharedPreferences.getInstance();
@@ -77,27 +114,7 @@ class _LiveScreenState extends State<LiveScreen> {
     });
   }
 
-  void _startMatch() async {
-    final teamName = _teamController.text;
-    final players = _playerControllers.map((controller) => controller.text).toList();
 
-    if (teamName.isNotEmpty && players.every((player) => player.isNotEmpty)) {
-      await _saveTeamAndPlayers(teamName, players);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => MatchScreen(
-            teamName: teamName,
-            players: players,
-          ),
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Veuillez entrer le nom de l\'équipe et tous les noms des joueurs.')),
-      );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
