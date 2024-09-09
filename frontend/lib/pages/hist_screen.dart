@@ -53,6 +53,10 @@ class _HistScreenState extends State<HistScreen> {
 
     // Supprime le match de l'historique
     _deleteMatch(matchEntry);
+
+
+
+
   }
 
   Future<void> _loadCumulativeStats() async {
@@ -149,39 +153,42 @@ class _HistScreenState extends State<HistScreen> {
     );
   }
 
-  Future<void> _cancelMatch(String matchEntry) async {
-    final prefs = await SharedPreferences.getInstance();
+Future<void> _cancelMatch(String matchEntry) async {
+  final prefs = await SharedPreferences.getInstance();
 
-    // Supprime le match de l'historique
-    _deleteMatch(matchEntry);
+  // Supprimer le match de l'historique
+  await _deleteMatch(matchEntry);
 
-    // Réinitialise les stats pour chaque joueur
-    for (var player in widget.players) {
-      String playerKey = 'stats_${widget.teamName}_$player';
-      String matchCountKey = 'matches_${widget.teamName}_$player';
+  // Réinitialiser les stats pour chaque joueur
+  for (var player in widget.players) {
+    String playerKey = 'stats_${widget.teamName}_$player';
+    String matchCountKey = 'matches_${widget.teamName}_$player';
 
-      // Charge les stats sauvegardées
-      String? savedStatsString = prefs.getString(playerKey);
-      Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
+    // Charger les stats sauvegardées
+    String? savedStatsString = prefs.getString(playerKey);
+    Map<String, dynamic> savedStats = savedStatsString != null ? _parseStats(savedStatsString) : {};
 
-      int matchCount = prefs.getInt(matchCountKey) ?? 0;
+    int matchCount = prefs.getInt(matchCountKey) ?? 0;
 
-      if (matchCount > 0) {
-        matchCount--;
+    if (matchCount > 0) {
+      matchCount--;
+      await prefs.setInt(matchCountKey, matchCount);
 
-        // Réinitialise ou recalcule les stats en fonction des matchs annulés
-
-        await prefs.setInt(matchCountKey, matchCount);
-
-        // Sauvegarde les nouvelles stats après recalcul
-        await prefs.setString(playerKey, savedStats.toString());
-      }
+      // Sauvegarder les nouvelles stats après recalcul
+      await prefs.setString(playerKey, jsonEncode(savedStats));
     }
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Le match du $matchEntry a été annulé.')),
-    );
   }
+
+  // Recharger l'historique après la suppression
+  setState(() {
+    _loadMatchHistory();
+  });
+
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(content: Text('Le match du $matchEntry a été annulé.')),
+  );
+}
+
 
   // Méthode auxiliaire pour analyser les stats sauvegardées
   Map<String, dynamic> _parseStats(String statsString) {
