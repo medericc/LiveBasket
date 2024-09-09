@@ -246,51 +246,52 @@ void _stopMatch() async {
         children: [
           Text('Équipe: ${widget.teamName}'),
           Expanded(
-            child: GridView.builder(
-              gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-              ),
-              itemCount: widget.players.length,
-              itemBuilder: (context, index) {
-                int playerId = index + 1;
-                var stats = playerStats[playerId]!;
+  child: GridView.builder(
+    gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+      crossAxisCount: 2,
+    ),
+    itemCount: widget.players.length,
+    itemBuilder: (context, index) {
+      int playerId = index + 1;
+      var stats = playerStats[playerId]!;
 
-                double freeThrowPct = _calculatePercentage(stats['oneMade']!, stats['oneMiss']!);
-                double twoPointPct = _calculatePercentage(stats['twoMade']!, stats['twoMiss']!);
-                double threePointPct = _calculatePercentage(stats['threeMade']!, stats['threeMiss']!);
-                double fieldGoalPct = _calculatePercentage(
-                  stats['twoMade']! + stats['threeMade']!,
-                  stats['twoMiss']! + stats['threeMiss']!,
-                );
+      double freeThrowPct = _calculatePercentage(stats['oneMade']!, stats['oneMiss']!);
+      double twoPointPct = _calculatePercentage(stats['twoMade']!, stats['twoMiss']!);
+      double threePointPct = _calculatePercentage(stats['threeMade']!, stats['threeMiss']!);
+      double fieldGoalPct = _calculatePercentage(
+        stats['twoMade']! + stats['threeMade']!,
+        stats['twoMiss']! + stats['threeMiss']!,
+      );
 
-                return DragTarget<String>(
-                  onAccept: (data) {
-                    _applyAction(playerId, data);
-                  },
-                  builder: (context, candidateData, rejectedData) {
-                    return Card(
-                      color: Colors.grey[200],
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text('Joueur ${playerId + 1}'),
-                          Text('Points: ${stats['points']}'),
-                          Text('Rebonds: ${stats['rebounds']}'),
-                          Text('Assistances: ${stats['assists']}'),
-                          Text('Balles volées: ${stats['steals']}'),
-                          Text('Contres: ${stats['blocks']}'),
-                          Text('LF%: ${freeThrowPct.toStringAsFixed(2)}%'),
-                          Text('2PT%: ${twoPointPct.toStringAsFixed(2)}%'),
-                          Text('3PT%: ${threePointPct.toStringAsFixed(2)}%'),
-                          Text('FG%: ${fieldGoalPct.toStringAsFixed(2)}%'),
-                        ],
-                      ),
-                    );
-                  },
-                );
-              },
+      return DragTarget<String>(
+        onAccept: (data) {
+          _applyAction(playerId, data);
+        },
+        builder: (context, candidateData, rejectedData) {
+          return Card(
+            color: Colors.grey[200],
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(widget.players[playerId - 1]),  // Nom réel du joueur
+                Text('Points: ${stats['points']}'),
+                Text('Rebonds: ${stats['rebounds']}'),
+                Text('Assistances: ${stats['assists']}'),
+                Text('Balles volées: ${stats['steals']}'),
+                Text('Contres: ${stats['blocks']}'),
+                Text('LF%: ${freeThrowPct.toStringAsFixed(2)}%'),
+                Text('2PT%: ${twoPointPct.toStringAsFixed(2)}%'),
+                Text('3PT%: ${threePointPct.toStringAsFixed(2)}%'),
+                Text('FG%: ${fieldGoalPct.toStringAsFixed(2)}%'),
+              ],
             ),
-          ),
+          );
+        },
+      );
+    },
+  ),
+),
+
           Padding(
             padding: const EdgeInsets.all(16.0),
             child: Row(
