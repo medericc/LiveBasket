@@ -1,34 +1,24 @@
 import 'player.dart';
-
+import 'dart:convert';
 class Team {
-  final int id;
-  final String name;
-  final List<Player> players;
+  String name;
+  List<Player> players;
 
-  Team({
-    required this.id,
-    required this.name,
-    required this.players,
-  });
+  Team({required this.name, required this.players});
 
-  // Conversion depuis un JSON reçu du backend
-  factory Team.fromJson(Map<String, dynamic> json) {
-    var playerList = json['players'] as List;
-    List<Player> playerItems = playerList.map((i) => Player.fromJson(i)).toList();
-
-    return Team(
-      id: json['id'],
-      name: json['name'],
-      players: playerItems,
-    );
-  }
-
-  // Conversion vers un JSON pour l'envoi au backend
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
       'players': players.map((player) => player.toJson()).toList(),
     };
+  }
+
+  static Team fromJson(Map<String, dynamic> json) {
+    return Team(
+      name: json['name'],
+      players: (json['players'] as List)
+          .map((playerJson) => Player.fromJson(playerJson))
+          .toList(),
+    );
   }
 }

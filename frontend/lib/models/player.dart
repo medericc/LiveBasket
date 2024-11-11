@@ -1,33 +1,61 @@
 class Player {
-  final int id;
   final String name;
   final int number;
-  final int teamId;
+  int points;
+  int rebounds;
+  int assists;
+  int gamesPlayed;
 
   Player({
-    required this.id,
     required this.name,
     required this.number,
-    required this.teamId,
+    this.points = 0,
+    this.rebounds = 0,
+    this.assists = 0,
+    this.gamesPlayed = 0,
   });
 
-  // Conversion depuis un JSON reçu du backend
-  factory Player.fromJson(Map<String, dynamic> json) {
-    return Player(
-      id: json['id'],
-      name: json['name'],
-      number: json['number'],
-      teamId: json['team_id'],
-    );
+  // Méthode pour mettre à jour une statistique spécifique
+  void updateStat(String stat) {
+    switch (stat) {
+      case 'Points':
+        points += 1; // Ajouter 1 point quand "Points" est déposé
+        break;
+      case 'Rebounds':
+        rebounds += 1; // Ajouter 1 rebond quand "Rebounds" est déposé
+        break;
+      case 'Assists':
+        assists += 1; // Ajouter 1 assistance quand "Assists" est déposé
+        break;
+      case 'Games Played':
+        gamesPlayed += 1; // Ajouter 1 match joué quand "Games Played" est déposé
+        break;
+      default:
+        break;
+    }
   }
 
-  // Conversion vers un JSON pour l'envoi au backend
+  // Convertir un objet Player en JSON pour sauvegarde/chargement
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
       'name': name,
       'number': number,
-      'team_id': teamId,
+      'points': points,
+      'rebounds': rebounds,
+      'assists': assists,
+      'gamesPlayed': gamesPlayed,
     };
+  }
+
+  // Créer un objet Player à partir d'un JSON
+  static Player fromJson(Map<String, dynamic> json) {
+    return Player(
+      name: json['name'],
+      number: json['number'],
+      points: json['points'],
+      rebounds: json['rebounds'],
+      assists: json['assists'],
+      gamesPlayed: json['gamesPlayed'],
+    );
   }
 }
